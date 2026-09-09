@@ -1,0 +1,10 @@
+/*
+ * Tailwind entrypoint.
+ *
+ * `@tailwind base` emits only Tailwind's base layer, NOT its Preflight reset —
+ * Preflight is switched off in tailwind.config.ts because it strips the base
+ * styles Vuetify components rely on. See the root README, "Styling boundaries".
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,152 @@
+// ===========================================================================
+//  TENANT SCOPING IS MANDATORY — READ BEFORE ADDING A MODEL
+// ===========================================================================
+//  Every tenant-scoped model MUST carry `branchId` and `departmentId` columns
+//  with matching indexes, from the day the model is created.
+//
+//  The branch/department management UI does not ship until Phase 8 (SCRUM-41),
+//  but the columns are added now on purpose: adding them today is trivial,
+//  retrofitting tenant scoping across every table later is a painful migration
+//  touching every query, every index and every row of production data.
+//
+//  Reviewers: reject any new tenant-scoped model that omits them.
+//  See CONTRIBUTING.md.
+// ===========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A physical or organisational branch. Top of the tenant-scoping hierarchy.
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  departments Department[]
+  users       User[]
+}
+
+/// A department inside a branch. Second level of tenant scoping.
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  branchId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  users  User[]
+
+  @@index([branchId])
+}
+
+/// Application user. RBAC policy content is filled out in SCRUM-34; this story
+/// only guarantees the column exists and is carried in the JWT payload.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  /// Seeded with 'admin' | 'agent'. SCRUM-34 replaces this with a real role model.
+  role         String   @default("agent")
+  isActive     Boolean  @default(true)
+  branchId     String?
+  departmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  branch        Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  refreshTokens RefreshToken[]
+
+  @@index([branchId])
+  @@index([departmentId])
+}
+
+/// Application customer. External user of the Phase 5 portal, stored in a
+/// SEPARATE table from staff `User` on purpose (SCRUM-43): the two audiences
+/// never share a row, and the login flow resolves which table a principal
+/// belongs to. Customers are NOT tenant-scoped in Phase 1, so no branch/dept.
+model Customer {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  @@map("customers")
+}
+
+/// One row per issued refresh token. `tokenHash` is a SHA-256 digest of the
+/// raw JWT — deterministic so it can be looked up, and useless to an attacker
+/// who only reads the table. Rotation revokes the old row and inserts a new one.
+///
+/// A token points at EITHER a staff `User` or a `Customer` (SCRUM-43). Both FKs
+/// are nullable; `userType` is denormalised so a lookup does not have to test
+/// which column is populated.
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String?
+  customerId String?
+  /// 'staff' | 'customer' — denormalised for fast lookup.
+  userType   String    @default("staff")
+  tokenHash  String    @unique
+  jti        String?   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+/// One row per issued password-reset token (SCRUM-43). Like `RefreshToken`, it
+/// references EITHER principal. `tokenHash` is a SHA-256 digest of the raw token
+/// that is emailed to the user; the raw value never touches the database.
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String?
+  customerId String?
+  userType   String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+/// Written directly by AuditLogInterceptor on every successful mutating request.
+/// Consumed by SCRUM-35 — keep the column shape stable.
+model AuditLog {
+  id           String   @id @default(cuid())
+  /// Null for unauthenticated mutations such as POST /auth/login. This is expected.
+  actorUserId  String?
+  action       String
+  resourceType String
+  resourceId   String?
+  branchId     String?
+  departmentId String?
+  statusCode   Int?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([resourceType, resourceId])
+  @@index([branchId, departmentId])
+  @@index([createdAt])
+}

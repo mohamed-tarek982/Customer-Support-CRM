@@ -1,0 +1,12 @@
+{
+  // Nuxt generates .nuxt/tsconfig.json on `nuxt prepare`. It carries the
+  // auto-import types, module augmentations (including $i18n) and path aliases,
+  // plus the right include/exclude globs — do not override `include` here or
+  // those generated .d.ts files drop out of the program.
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

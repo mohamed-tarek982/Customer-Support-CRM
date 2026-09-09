@@ -1,0 +1,165 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: '9.15.4'
+  NODE_VERSION: '22'
+
+jobs:
+  backend:
+    name: Backend (lint, typecheck, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: crm
+          POSTGRES_PASSWORD: crm
+          POSTGRES_DB: crm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crm -d crm"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://crm:crm@localhost:5432/crm?schema=public
+      NODE_ENV: test
+      PORT: '3001'
+      CORS_ORIGINS: http://localhost:3000
+      # CI-only throwaway values. Real secrets never live in this file.
+      JWT_ACCESS_SECRET: ci-access-secret-not-used-anywhere-else
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_SECRET: ci-refresh-secret-not-used-anywhere-else
+      JWT_REFRESH_TTL: 7d
+      # Object storage: when these repository secrets are absent the values stay
+      # as placeholders and test/storage.e2e-spec.ts skips itself with a warning
+      # rather than failing. Set them to run the real round trip in CI.
+      S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || 'https://example.r2.cloudflarestorage.com' }}
+      S3_REGION: ${{ secrets.S3_REGION || 'auto' }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET || 'crm-attachments' }}
+      S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID || 'changeme' }}
+      S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY || 'changeme' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: End-to-end tests
+        run: pnpm test:e2e
+
+      - name: Guard the DEFERRED stack
+        # BullMQ, Redis, WebSockets and Meilisearch are deliberately out of scope
+        # for Phase 1. Catch them at the lockfile, not at review.
+        run: |
+          if grep -Eq '(^|/)(bullmq|ioredis|socket\.io|meilisearch|moment)@' pnpm-lock.yaml; then
+            echo "A DEFERRED dependency was added to backend/pnpm-lock.yaml:"
+            grep -En '(^|/)(bullmq|ioredis|socket\.io|meilisearch|moment)@' pnpm-lock.yaml
+            echo "See the root README, 'Deferred decisions', before adding any of these."
+            exit 1
+          fi
+          echo "No deferred dependencies present."
+
+  frontend:
+    name: Frontend (lint, typecheck, test, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Verify the logical-property lint rule actually fires
+        # A misconfigured rule and a working rule both produce a green lint run.
+        # This lints a fixture full of banned classes and fails if ESLint is happy.
+        run: pnpm check:lint-rule
+
+      - name: Check for design-token drift
+        # Fails if a palette hex appears anywhere outside design-tokens/.
+        working-directory: .
+        run: bash frontend/scripts/check-token-drift.sh
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Guard against Vuetify utility classes
+        # Backstop for the lint rule, covering files ESLint does not parse.
+        run: |
+          if grep -rnE '(^|[" ])(pa-[0-9]|ma-[0-9]|d-flex)([" ]|$)' pages layouts components composables app.vue 2>/dev/null; then
+            echo "Vuetify utility classes found. Tailwind owns layout and spacing."
+            exit 1
+          fi
+          echo "No Vuetify utility classes present."
+
+      - name: Guard the DEFERRED stack
+        run: |
+          if grep -Eq '(^|/)(socket\.io-client|meilisearch|moment)@' pnpm-lock.yaml; then
+            echo "A DEFERRED dependency was added to frontend/pnpm-lock.yaml:"
+            grep -En '(^|/)(socket\.io-client|meilisearch|moment)@' pnpm-lock.yaml
+            exit 1
+          fi
+          echo "No deferred dependencies present."

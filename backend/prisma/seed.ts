@@ -1,0 +1,74 @@
+/**
+ * Local development seed.
+ *
+ * Creates one branch, one department and one admin user so the JWT and audit-log
+ * smoke tests have something to run against.
+ *
+ * The seeded password comes from SEED_ADMIN_PASSWORD and defaults to `changeme`.
+ * This is for LOCAL SMOKE TESTS ONLY — never run this against staging or
+ * production, and never promote a seeded account to a real environment.
+ */
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
+
+const BCRYPT_ROUNDS = 10;
+
+async function main(): Promise<void> {
+  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
+  const password = process.env.SEED_ADMIN_PASSWORD ?? 'changeme';
+
+  const branch = await prisma.branch.upsert({
+    where: { id: 'seed-branch-hq' },
+    update: {},
+    create: { id: 'seed-branch-hq', name: 'Head Office' },
+  });
+
+  const department = await prisma.department.upsert({
+    where: { id: 'seed-dept-support' },
+    update: {},
+    create: {
+      id: 'seed-dept-support',
+      name: 'Customer Support',
+      branchId: branch.id,
+    },
+  });
+
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+  const admin = await prisma.user.upsert({
+    where: { email },
+    update: { passwordHash, role: 'admin', branchId: branch.id, departmentId: department.id },
+    create: {
+      email,
+      passwordHash,
+      role: 'admin',
+      branchId: branch.id,
+      departmentId: department.id,
+    },
+  });
+
+  const customerEmail = process.env.SEED_CUSTOMER_EMAIL ?? 'customer@example.com';
+  const customer = await prisma.customer.upsert({
+    where: { email: customerEmail },
+    update: { passwordHash, isActive: true },
+    create: { email: customerEmail, passwordHash, displayName: 'Demo Customer' },
+  });
+
+  console.log('[seed] branch    :', branch.name, `(${branch.id})`);
+  console.log('[seed] department:', department.name, `(${department.id})`);
+  console.log('[seed] admin     :', admin.email, `(role=${admin.role})`);
+  console.log('[seed] customer  :', customer.email, '(portal user)');
+  console.log('[seed] password  :', password, '<- local smoke tests only');
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (error: unknown) => {
+    console.error('[seed] failed:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

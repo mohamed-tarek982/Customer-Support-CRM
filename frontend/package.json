@@ -1,0 +1,49 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Customer Support CRM web app — Nuxt 3 SPA + Vuetify 3 + Tailwind",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:tokens": "bash scripts/check-token-drift.sh",
+    "check:lint-rule": "bash scripts/verify-lint-rule.sh"
+  },
+  "dependencies": {
+    "@nuxtjs/i18n": "^9.5.6",
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "@vee-validate/nuxt": "^4.15.0",
+    "@vee-validate/yup": "^4.15.0",
+    "date-fns": "^4.1.0",
+    "nuxt": "^3.15.4",
+    "tailwindcss": "^3.4.17",
+    "vee-validate": "^4.15.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.7.14",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@vue/test-utils": "^2.5.0",
+    "eslint": "^9.20.1",
+    "eslint-plugin-vue": "^10.11.0",
+    "globals": "^17.12.0",
+    "happy-dom": "^20.14.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^3.0.5",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^2.2.0"
+  }
+}

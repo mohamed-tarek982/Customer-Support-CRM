@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "Customer Support CRM",
+    "tagline": "Phase 1 foundation scaffold",
+    "area": {
+      "staff": "Staff workspace",
+      "client": "Customer portal"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "rtlDemo": "RTL demo",
+    "primary": "Main navigation",
+    "toggleMenu": "Toggle navigation menu",
+    "staff": {
+      "dashboard": "Dashboard",
+      "tickets": "Tickets",
+      "customers": "Customers",
+      "knowledgeBase": "Knowledge base",
+      "reports": "Reports",
+      "settings": "Settings"
+    },
+    "client": {
+      "overview": "Overview",
+      "myTickets": "My tickets",
+      "newTicket": "New ticket",
+      "knowledgeBase": "Help centre",
+      "profile": "My profile"
+    }
+  },
+  "home": {
+    "heading": "Vuetify and Tailwind, side by side",
+    "body": "The button below is a Vuetify component. The layout around it is Tailwind. Neither reaches into the other.",
+    "primaryAction": "Primary action",
+    "secondaryAction": "Secondary action",
+    "autoImport": "Auto-import check",
+    "routing": "File-based routing check",
+    "apiBase": "API base URL"
+  },
+  "rtl": {
+    "heading": "Right-to-left verification",
+    "body": "Switch the language and confirm two things move together: the Vuetify card mirrors, and the Tailwind logical spacing swaps sides.",
+    "switchTo": "Switch to Arabic",
+    "switchBack": "Switch to English",
+    "direction": "Document direction",
+    "locale": "Active locale",
+    "vuetifyRtl": "Vuetify isRtl",
+    "cardTitle": "Ticket #1042",
+    "cardSubtitle": "Opened by Customer Support",
+    "cardBody": "This card is a Vuetify component inside a Tailwind grid. The spacing uses ps- and pe-, so it follows the reading direction instead of a fixed side.",
+    "startSide": "This block has ps-6 (padding at the start)",
+    "endSide": "This block has pe-6 (padding at the end)"
+  },
+  "form": {
+    "heading": "VeeValidate and Yup",
+    "email": "Email",
+    "submit": "Validate",
+    "valid": "Looks good."
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgot": "Forgot your password?"
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "network": "Could not reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "submit": "Send reset link",
+      "confirmation": "If that email is registered, a reset link is on its way."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "submit": "Update password",
+      "success": "Your password has been updated. Sign in with your new password."
+    },
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailFormat": "Enter a valid email address.",
+      "passwordRequired": "Password is required.",
+      "passwordMin": "Password must be at least 8 characters.",
+      "passwordsMatch": "Passwords do not match."
+    },
+    "logout": {
+      "button": "Sign out"
+    }
+  },
+  "portal": {
+    "heading": "Customer portal",
+    "body": "You are signed in as a customer. Ticket views arrive in Phase 5."
+  },
+  "page": {
+    "placeholder": "This section is part of the Phase 5 build. The route, its guard and its place in the sidebar are ready; the screen itself is on the way."
+  }
+}
