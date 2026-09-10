@@ -96,6 +96,10 @@ model Customer {
   email        String   @unique
   passwordHash String
   displayName  String?
+  /// Secondary contact channel shown on the agent-facing profile (SCRUM-5).
+  /// Nullable and free-text: a customer may not have given one, and the portal
+  /// serves several countries, so there is no single national format to enforce.
+  phone        String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
