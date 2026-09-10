@@ -21,6 +21,7 @@ export type IconName =
   | 'user'
   | 'menu'
   | 'shield'
+  | 'history'
 
 const props = defineProps<{ name: IconName }>()
 
@@ -36,6 +37,9 @@ const PATHS: Record<IconName, string> = {
   user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
   menu: 'M4 6h16M4 12h16M4 18h16',
   shield: 'M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6l-8-3Zm0 6.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm-3.5 8a3.5 3.5 0 0 1 7 0',
+  // A plain clock face: direction-neutral, so it needs no RTL mirroring the
+  // way a rewind arrow would.
+  history: 'M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18Zm0-13v5l3.5 2',
 }
 
 const path = computed(() => PATHS[props.name])

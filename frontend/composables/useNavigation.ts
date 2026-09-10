@@ -43,6 +43,9 @@ export const STAFF_NAV: readonly NavItem[] = [
   // Admin-only (SCRUM-34). Distinct icon from Customers, which already uses
   // 'users' — two identical glyphs in one sidebar is a navigation bug.
   { to: '/staff/users', labelKey: 'nav.staff.users', icon: 'shield', roles: ['admin'] },
+  // Admin-only (SCRUM-35). The audit trail names who did what to whom, so it is
+  // gated on the same role as the API's `@Roles('admin')`.
+  { to: '/staff/audit-logs', labelKey: 'nav.staff.auditLogs', icon: 'history', roles: ['admin'] },
   { to: '/staff/settings', labelKey: 'nav.staff.settings', icon: 'settings' },
 ]
 
