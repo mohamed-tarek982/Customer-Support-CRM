@@ -14,6 +14,7 @@ Entry point for the **phase-1** feature. Stories execute in order by their `NN` 
 | 05 | `05-story-scrum-34.md` | test | SCRUM-34 | — |
 | 06 | `06-story-scrum-35.md` | Admin can view audit logs | SCRUM-35 | — |
 | 07 | `07-story-scrum-5.md` | Agent can view customer profile with contact details | SCRUM-5 | — |
+| 08 | `08-story-scrum-6.md` | Agent can view customer interaction history | SCRUM-6 | — |
 
 ## Dependency notes
 
