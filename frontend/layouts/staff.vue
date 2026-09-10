@@ -2,16 +2,21 @@
 /**
  * Staff workspace shell: sidebar + top bar, for agents and admins.
  *
- * Pair it with the guard on the page itself — the layout is chrome, not a
- * boundary:
+ * The sidebar is built from the signed-in role, so an agent never sees the
+ * admin-only entries (SCRUM-34). That is housekeeping, not a boundary — pair it
+ * with the guard on the page itself:
  *   definePageMeta({ layout: 'staff', middleware: ['auth'], userTypes: ['staff'] })
  */
-import { STAFF_NAV } from '~/composables/useNavigation'
+import { staffNavFor } from '~/composables/useNavigation'
+
+const auth = useAuth()
+
+const navItems = computed(() => staffNavFor(auth.role.value))
 </script>
 
 <template>
   <AppShell
-    :items="[...STAFF_NAV]"
+    :items="navItems"
     area-key="app.area.staff"
   >
     <slot />

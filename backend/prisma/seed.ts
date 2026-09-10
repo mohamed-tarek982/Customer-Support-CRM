@@ -18,6 +18,9 @@ const BCRYPT_ROUNDS = 10;
 async function main(): Promise<void> {
   const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'changeme';
+  // The staff UI lists users by name (SCRUM-34); without one the seeded
+  // account renders as "Unnamed user" on its own admin page.
+  const SEED_ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Seed Admin';
 
   const branch = await prisma.branch.upsert({
     where: { id: 'seed-branch-hq' },
@@ -39,9 +42,16 @@ async function main(): Promise<void> {
 
   const admin = await prisma.user.upsert({
     where: { email },
-    update: { passwordHash, role: 'admin', branchId: branch.id, departmentId: department.id },
+    update: {
+      passwordHash,
+      role: 'admin',
+      name: SEED_ADMIN_NAME,
+      branchId: branch.id,
+      departmentId: department.id,
+    },
     create: {
       email,
+      name: SEED_ADMIN_NAME,
       passwordHash,
       role: 'admin',
       branchId: branch.id,

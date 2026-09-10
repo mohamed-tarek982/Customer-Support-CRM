@@ -18,7 +18,8 @@
       "customers": "Customers",
       "knowledgeBase": "Knowledge base",
       "reports": "Reports",
-      "settings": "Settings"
+      "settings": "Settings",
+      "users": "Users"
     },
     "client": {
       "overview": "Overview",
@@ -145,5 +146,104 @@
   },
   "page": {
     "placeholder": "This section is part of the Phase 5 build. The route, its guard and its place in the sidebar are ready; the screen itself is on the way."
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Create staff accounts, assign roles, and disable access when someone leaves.",
+    "loading": "Loading users…",
+    "empty": "No staff accounts yet. Create the first one to get started.",
+    "emptyFiltered": "No users match these filters.",
+    "unnamed": "Unnamed user",
+    "adminOnlyNotice": "Only an admin can manage users.",
+    "roles": {
+      "admin": "Admin",
+      "agent": "Agent"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Disabled"
+    },
+    "filters": {
+      "legend": "Filter users",
+      "search": "Search",
+      "searchPlaceholder": "Name or email",
+      "role": "Role",
+      "status": "Status",
+      "branch": "Branch",
+      "anyRole": "Any role",
+      "anyStatus": "Any status",
+      "clear": "Clear filters"
+    },
+    "table": {
+      "caption": "Staff accounts, with their role and status.",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "role": "Role",
+      "password": "Initial password",
+      "branchId": "Branch ID",
+      "departmentId": "Department ID"
+    },
+    "hints": {
+      "password": "At least 8 characters. The user can change it from the reset link.",
+      "branchId": "Optional. A picker replaces this when branch management ships.",
+      "departmentId": "Optional. A picker replaces this when department management ships.",
+      "notYourself": "You cannot disable your own account.",
+      "noPasswordOnEdit": "Passwords are not set here. The user resets their own from the sign-in page."
+    },
+    "actions": {
+      "create": "New user",
+      "edit": "Edit",
+      "assignRole": "Assign role",
+      "deactivate": "Disable",
+      "reactivate": "Enable",
+      "cancel": "Cancel",
+      "save": "Save changes"
+    },
+    "dialogs": {
+      "createTitle": "New staff account",
+      "editTitle": "Edit user",
+      "roleTitle": "Assign a role",
+      "roleBody": "Choose the role for {name}. It applies the next time they sign in.",
+      "deactivateTitle": "Disable this account?",
+      "deactivateBody": "{name} will no longer be able to sign in.",
+      "deactivateConsequence": "Their open sessions end immediately. The account is kept, so their history stays intact, and you can enable it again at any time."
+    },
+    "toasts": {
+      "created": "User created.",
+      "updated": "User updated.",
+      "roleAssigned": "Role updated.",
+      "deactivated": "User disabled.",
+      "reactivated": "User enabled."
+    },
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailFormat": "Enter a valid email address.",
+      "nameRequired": "Name is required.",
+      "nameMax": "Name must be 120 characters or fewer.",
+      "roleRequired": "Role is required.",
+      "roleUnknown": "Choose one of the available roles.",
+      "passwordRequired": "An initial password is required.",
+      "passwordMin": "Password must be at least 8 characters."
+    },
+    "errors": {
+      "emailTaken": "That email address is already in use.",
+      "cannotDeactivateSelf": "You cannot disable your own account.",
+      "lastActiveAdmin": "This is the last active admin. Promote someone else first.",
+      "invalidBranch": "That branch does not exist.",
+      "invalidDepartment": "That department does not exist.",
+      "forbidden": "Only admins can manage users.",
+      "notFound": "That user no longer exists.",
+      "validation": "One or more values are invalid.",
+      "network": "Could not reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }
