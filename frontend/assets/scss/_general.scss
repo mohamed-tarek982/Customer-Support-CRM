@@ -1,0 +1,203 @@
+/** font faces */
+@font-face {
+  font-family: PublicSans;
+  src: url(../fonts/PublicSans-Regular.ttf);
+  font-weight: 400;
+}
+@font-face {
+  font-family: PublicSans;
+  src: url(../fonts/PublicSans-Medium.ttf);
+  font-weight: 500;
+}
+@font-face {
+  font-family: PublicSans;
+  src: url(../fonts/PublicSans-SemiBold.ttf);
+  font-weight: 600;
+}
+@font-face {
+  font-family: PublicSans;
+  src: url(../fonts/PublicSans-Bold.ttf);
+  font-weight: 700;
+}
+@font-face {
+  font-family: PublicSans;
+  src: url(../fonts/PublicSans-ExtraBold.ttf);
+  font-weight: 800;
+}
+
+@font-face {
+  font-family: times;
+  src: url(../fonts/times.ttf);
+}
+
+@font-face {
+  font-family: cairo;
+  src: url(../fonts/cairo.ttf);
+}
+
+:root {
+  // natural
+  --natural-700: #151615;
+  --natural-600: #383737;
+  --natural-500: #a3a7aa;
+  --natural-400: #c4c9cd;
+  --natural-300: #d2d9df;
+  --natural-200: #e5ebf0;
+  --natural-100: #eef1f3;
+  --natural-50: #f2f2f2;
+  // primary
+  --primary-700: #f34116;
+  --primary-600: #f5613d;
+  --primary-500: #f67555;
+  --primary-400: #f89881;
+  --primary-300: #f9a894;
+  --primary-200: #fbc8bb;
+  --primary-100: #fddfd8;
+  --primary-50: #feefec;
+  // auxiliary
+
+  --theme-color: #1f3d82;
+  --input-border-color: #d2d9df;
+  --xl-dialog: 1400px;
+  --large-dialog: 1157px;
+  --between-medium-large-dialog: 970px;
+  --medium-dialog: 780px;
+  --small-dialog: 528px;
+}
+html[lang="en"] {
+  body {
+    font-family: "publicsans", "cairo", sans-serif;
+  }
+}
+html[lang="ar"] {
+  body {
+    font-family: "cairo", sans-serif;
+  }
+}
+body {
+  line-height: 1.5;
+  background-color: #e8e8e8;
+}
+
+html[dir="rtl"] {
+  text-align: right;
+}
+
+html[dir="ltr"] {
+  text-align: left;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+  user-select: none;
+}
+h1 {
+  font-size: 2.25rem;
+}
+h2 {
+  font-size: 2rem;
+}
+h3 {
+  font-size: 16px;
+  color: #2a313a;
+  font-weight: 500;
+}
+h4 {
+  font-size: 1.5rem;
+}
+h5 {
+  font-size: 1.25rem;
+}
+h6 {
+  font-size: 1rem;
+}
+
+.container {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+a {
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+@media (min-width: 500px) {
+  .container {
+    max-width: 480px;
+  }
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 550px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1312px;
+  }
+}
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1550px;
+  }
+}
+
+/* Width of the scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 5px;
+}
+
+/* Track (background) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+/* Handle (thumb) */
+::-webkit-scrollbar-thumb {
+  background: #7293a3;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

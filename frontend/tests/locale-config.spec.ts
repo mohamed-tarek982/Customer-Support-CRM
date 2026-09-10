@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Window } from 'happy-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
+import * as vuetifyLocales from 'vuetify/locale'
 import {
   APP_LOCALES,
   DEFAULT_LOCALE,
@@ -9,6 +10,7 @@ import {
   applyDocumentDirection,
   directionFor,
 } from '../i18n/locale-config'
+import { VUETIFY_MESSAGES } from '../i18n/vuetify-messages'
 
 const LOCALES_DIR = resolve(__dirname, '../i18n/locales')
 
@@ -44,6 +46,32 @@ describe('locale configuration', () => {
     // The half-mirrored-page bug happens when these two disagree.
     for (const locale of APP_LOCALES) {
       expect(RTL_BY_LOCALE[locale.code]).toBe(locale.dir === 'rtl')
+    }
+  })
+
+  /**
+   * Vuetify renders strings our locale files never see: the data-table footer,
+   * the empty state, every sort and select aria-label. They come from Vuetify's
+   * own bundles, which plugins/vuetify.ts has to register by hand. Registering a
+   * locale with i18n and forgetting it there leaves those strings in English on
+   * an otherwise Arabic page, and nothing errors.
+   */
+  it('has a Vuetify message bundle available for every registered locale', () => {
+    const available = Object.keys(vuetifyLocales)
+
+    for (const locale of APP_LOCALES) {
+      expect(available).toContain(locale.code)
+    }
+  })
+
+  it('carries a bundle for every locale into the map the Vuetify plugin registers', () => {
+    for (const locale of APP_LOCALES) {
+      const bundle = VUETIFY_MESSAGES[locale.code] as { dataFooter?: unknown } | undefined
+
+      expect(bundle).toBeTruthy()
+      // One representative footer string, so an empty placeholder object fails
+      // the assertion the same way a missing entry does.
+      expect(bundle?.dataFooter).toBeTruthy()
     }
   })
 
