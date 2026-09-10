@@ -7,6 +7,7 @@
  * The label shows the OTHER language, in that language, so an Arabic speaker
  * sees "العربية" to switch to it.
  */
+import { mdiTranslate } from '@mdi/js'
 import { APP_LOCALES } from '~/i18n/locale-config'
 
 const { locale, setLocale } = useI18n()
@@ -28,6 +29,7 @@ async function toggleLocale(): Promise<void> {
     color="primary"
     size="small"
     :aria-label="localeName"
+    :prepend-icon="mdiTranslate"
     @click="toggleLocale"
   >
     {{ localeName }}

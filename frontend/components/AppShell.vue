@@ -53,15 +53,15 @@ const currentTitle = computed(() => {
     <v-navigation-drawer
       v-model="drawerOpen"
       location="start"
-      color="surface"
       :width="260"
+      class="border-l border-gray-200 bg-blue-grey-darken-3 flex flex-col"
     >
       <div class="flex h-full flex-col">
         <div class="border-b border-secondary/15 px-4 py-4">
-          <p class="text-base font-semibold text-secondary">
+          <p class="text-base font-semibold text-white">
             {{ $t('app.title') }}
           </p>
-          <p class="text-xs text-secondary/60">
+          <p class="text-xs text-white/60">
             {{ $t(areaKey) }}
           </p>
         </div>
@@ -77,8 +77,8 @@ const currentTitle = computed(() => {
             class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors"
             :class="
               isActive(item)
-                ? 'bg-primary/10 text-primary'
-                : 'text-secondary hover:bg-background hover:text-secondary'
+                ? 'bg-gray-200 text-primary'
+                : 'text-white hover:bg-blue-grey-lighten-2 hover:text-secondary'
             "
             :aria-current="isActive(item) ? 'page' : undefined"
           >
@@ -91,13 +91,12 @@ const currentTitle = computed(() => {
         </nav>
 
         <div class="border-t border-secondary/15 p-3">
-          <p class="truncate px-1 pb-2 text-xs text-secondary/60">
+          <p class="truncate px-1 pb-2 text-xs text-white/60">
             {{ auth.session.value?.email }}
           </p>
           <v-btn
             block
             variant="outlined"
-            color="secondary"
             size="small"
             @click="auth.logout()"
           >
@@ -125,7 +124,7 @@ const currentTitle = computed(() => {
             class="h-5 w-5"
           />
         </v-btn>
-        <h1 class="me-auto truncate text-base font-semibold text-secondary">
+        <h1 class="me-auto truncate text-base font-semibold text-white">
           {{ currentTitle }}
         </h1>
         <LanguageSwitcher />

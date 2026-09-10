@@ -19,7 +19,8 @@
       "knowledgeBase": "Knowledge base",
       "reports": "Reports",
       "settings": "Settings",
-      "users": "Users"
+      "users": "Users",
+      "auditLogs": "Audit log"
     },
     "client": {
       "overview": "Overview",
@@ -242,6 +243,52 @@
       "forbidden": "Only admins can manage users.",
       "notFound": "That user no longer exists.",
       "validation": "One or more values are invalid.",
+      "network": "Could not reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "auditLogs": {
+    "title": "Audit log",
+    "subtitle": "Every change made in the system, newest first: who did it, what they changed, and when.",
+    "loading": "Loading the audit log…",
+    "empty": "Nothing has been recorded yet.",
+    "emptyFiltered": "No activity matches these filters.",
+    "adminOnlyNotice": "Only admins can read the audit log.",
+    "anonymous": "Not signed in",
+    "none": "—",
+    "filters": {
+      "legend": "Filter the audit log",
+      "search": "Search",
+      "searchPlaceholder": "Action, resource type or resource id",
+      "actor": "User id",
+      "action": "Action",
+      "actionPlaceholder": "For example POST or /users",
+      "resourceType": "Resource type",
+      "resourceId": "Resource id",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear filters"
+    },
+    "table": {
+      "caption": "Audit log entries",
+      "timestamp": "When",
+      "actor": "User",
+      "action": "Action",
+      "resourceType": "Resource type",
+      "resourceId": "Resource id",
+      "details": "Details"
+    },
+    "actions": {
+      "toggleDetails": "Show or hide the recorded details"
+    },
+    "hints": {
+      "actorId": "The id of the staff account that made the change.",
+      "resourceType": "The kind of record that changed, such as users or settings."
+    },
+    "errors": {
+      "invalidDateRange": "The start date must come before the end date.",
+      "forbidden": "Only admins can read the audit log.",
+      "validation": "One or more filters are invalid.",
       "network": "Could not reach the server. Check your connection and try again.",
       "generic": "Something went wrong. Please try again."
     }
