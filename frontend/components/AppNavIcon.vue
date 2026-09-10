@@ -20,6 +20,7 @@ export type IconName =
   | 'plus'
   | 'user'
   | 'menu'
+  | 'shield'
 
 const props = defineProps<{ name: IconName }>()
 
@@ -34,6 +35,7 @@ const PATHS: Record<IconName, string> = {
   plus: 'M12 5v14M5 12h14',
   user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
   menu: 'M4 6h16M4 12h16M4 18h16',
+  shield: 'M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6l-8-3Zm0 6.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm-3.5 8a3.5 3.5 0 0 1 7 0',
 }
 
 const path = computed(() => PATHS[props.name])

@@ -52,10 +52,23 @@ model Department {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
+  /// Display name shown throughout the staff UI. Nullable because every row
+  /// created before SCRUM-34 (the seed admin, the e2e fixtures) predates it.
+  name         String?
   passwordHash String
-  /// Seeded with 'admin' | 'agent'. SCRUM-34 replaces this with a real role model.
+  /// One of USER_ROLES in src/modules/users/users.constants.ts ('admin' | 'agent').
+  /// Kept as String rather than a Prisma enum so adding a role is a code change
+  /// and not a migration; the allow-list is enforced by the DTOs and RolesGuard.
   role         String   @default("agent")
+  /// Deactivation is a soft disable, never a delete: AuditLog rows reference this
+  /// id, and deleting the user would orphan every entry naming them.
   isActive     Boolean  @default(true)
+  /// When `isActive` last went false. Cleared on reactivation, so the pair always
+  /// describes one coherent state rather than a stale timestamp.
+  deactivatedAt   DateTime?
+  /// The admin who performed the deactivation. Self-relation, so "who disabled
+  /// this account" is answerable without scanning the audit log.
+  deactivatedById String?
   branchId     String?
   departmentId String?
   createdAt    DateTime @default(now())
@@ -64,9 +77,14 @@ model User {
   branch        Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
   department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   refreshTokens RefreshToken[]
+  deactivatedBy User?          @relation("UserDeactivations", fields: [deactivatedById], references: [id], onDelete: SetNull)
+  deactivations User[]         @relation("UserDeactivations")
 
   @@index([branchId])
   @@index([departmentId])
+  /// Covers the admin list query, which always filters on isActive and is
+  /// commonly narrowed further by branch and department.
+  @@index([isActive, branchId, departmentId])
 }
 
 /// Application customer. External user of the Phase 5 portal, stored in a
