@@ -10,6 +10,18 @@
 import { mdiTranslate } from '@mdi/js'
 import { APP_LOCALES } from '~/i18n/locale-config'
 
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Vuetify colour token for the button. The default suits a light surface
+     * (the pre-auth shell); a dark chrome such as the app bar passes "white",
+     * where primary-on-primary would be unreadable.
+     */
+    color?: string
+  }>(),
+  { color: 'primary' },
+)
+
 const { locale, setLocale } = useI18n()
 
 const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
@@ -26,8 +38,9 @@ async function toggleLocale(): Promise<void> {
 <template>
   <v-btn
     variant="outlined"
-    color="primary"
+    :color="props.color"
     size="small"
+    min-height="34"
     :aria-label="localeName"
     :prepend-icon="mdiTranslate"
     @click="toggleLocale"

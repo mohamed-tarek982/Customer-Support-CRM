@@ -30,6 +30,10 @@
       "profile": "My profile"
     }
   },
+  "staff": {
+    "title": "Staff dashboard",
+    "subtitle": "An overview of your workspace and the tools available to your team."
+  },
   "home": {
     "heading": "Vuetify and Tailwind, side by side",
     "body": "The button below is a Vuetify component. The layout around it is Tailwind. Neither reaches into the other.",
