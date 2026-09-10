@@ -56,10 +56,33 @@ async function main(): Promise<void> {
     create: { email: customerEmail, passwordHash, displayName: 'Demo Customer' },
   });
 
+  // Org-wide settings (SCRUM-36). Upserted by key so re-running the seed never
+  // overwrites a value an admin has already changed in the UI.
+  const settings: { key: string; value: unknown; category: string }[] = [
+    { key: 'org.name', value: 'CRM', category: 'general' },
+    { key: 'org.timezone', value: 'UTC', category: 'general' },
+    { key: 'org.defaultLocale', value: 'en', category: 'localisation' },
+    { key: 'org.dateFormat', value: 'yyyy-MM-dd', category: 'localisation' },
+    { key: 'features.customerPortal', value: true, category: 'features' },
+  ];
+
+  for (const setting of settings) {
+    await prisma.systemSetting.upsert({
+      where: { key: setting.key },
+      update: {},
+      create: {
+        key: setting.key,
+        value: setting.value as never,
+        category: setting.category,
+      },
+    });
+  }
+
   console.log('[seed] branch    :', branch.name, `(${branch.id})`);
   console.log('[seed] department:', department.name, `(${department.id})`);
   console.log('[seed] admin     :', admin.email, `(role=${admin.role})`);
   console.log('[seed] customer  :', customer.email, '(portal user)');
+  console.log('[seed] settings  :', settings.length, 'org-wide keys');
   console.log('[seed] password  :', password, '<- local smoke tests only');
 }
 

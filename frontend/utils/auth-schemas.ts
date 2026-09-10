@@ -64,3 +64,36 @@ export function resolvePostLoginTarget(
   if (!allowed || allowed.includes(userType)) return redirect
   return home
 }
+
+/**
+ * Map a failed auth request to the i18n key the form should show.
+ *
+ * Only a real 401 may say "incorrect email or password". A dead API, a CORS
+ * failure or a 500 used to render that same line, which made an unreachable
+ * backend indistinguishable from a typo'd password. 429 gets its own copy
+ * because login is rate limited (10/min per IP) and retrying makes it worse.
+ *
+ * The 401 copy stays generic on purpose: the API returns one response for
+ * "no such email", "wrong password" and "wrong table", and the UI must not
+ * undo that.
+ */
+export function authErrorKey(err: unknown): string {
+  const status = httpStatusOf(err)
+  if (status === 401) return 'auth.errors.invalidCredentials'
+  if (status === 429) return 'auth.errors.rateLimited'
+  if (status === undefined) return 'auth.errors.network'
+  return 'auth.errors.generic'
+}
+
+/**
+ * Pull the HTTP status off an ofetch `FetchError`. Returns undefined when the
+ * request never got a response at all (offline, DNS, CORS, connection refused).
+ */
+export function httpStatusOf(err: unknown): number | undefined {
+  if (!err || typeof err !== 'object') return undefined
+  const e = err as { statusCode?: unknown; status?: unknown; response?: { status?: unknown } }
+  for (const candidate of [e.statusCode, e.status, e.response?.status]) {
+    if (typeof candidate === 'number') return candidate
+  }
+  return undefined
+}

@@ -3,13 +3,15 @@
  * Shared login for both audiences (SCRUM-43). The API decides staff vs customer
  * from the credentials and puts `userType` in the token; this page only redirects.
  *
- * The error copy is deliberately singular — `auth.errors.invalidCredentials` —
+ * The 401 copy is deliberately singular — `auth.errors.invalidCredentials` —
  * and never distinguishes "no such email" from "wrong password" from "wrong
- * table". The API returns one generic 401 for all three; the UI must not undo that.
+ * table". The API returns one generic 401 for all three; the UI must not undo
+ * that. Everything else (unreachable API, 429, 5xx) gets its own line via
+ * `authErrorKey`, so a dead backend never reads as a wrong password.
  */
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/yup'
-import { buildLoginSchema, resolvePostLoginTarget } from '~/utils/auth-schemas'
+import { authErrorKey, buildLoginSchema, resolvePostLoginTarget } from '~/utils/auth-schemas'
 
 definePageMeta({ layout: 'auth', middleware: ['guest'] })
 
@@ -38,8 +40,8 @@ const onSubmit = handleSubmit(async (values) => {
       return router.resolve(path).meta.userTypes
     })
     await navigateTo(target)
-  } catch {
-    submitError.value = t('auth.errors.invalidCredentials')
+  } catch (err) {
+    submitError.value = t(authErrorKey(err))
   } finally {
     loading.value = false
   }

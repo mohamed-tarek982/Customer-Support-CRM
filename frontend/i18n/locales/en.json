@@ -68,6 +68,7 @@
     "errors": {
       "invalidCredentials": "Incorrect email or password.",
       "network": "Could not reach the server. Check your connection and try again.",
+      "rateLimited": "Too many login attempts. Wait a minute and try again.",
       "generic": "Something went wrong. Please try again."
     },
     "forgot": {
@@ -96,6 +97,51 @@
   "portal": {
     "heading": "Customer portal",
     "body": "You are signed in as a customer. Ticket views arrive in Phase 5."
+  },
+  "settings": {
+    "title": "System settings",
+    "subtitle": "Configure org-wide options. Changes apply immediately, with no restart.",
+    "loading": "Loading settings…",
+    "readOnlyNotice": "You can view these settings. Only an admin can change them.",
+    "sections": {
+      "general": "General",
+      "localisation": "Localisation",
+      "features": "Features"
+    },
+    "fields": {
+      "orgName": "Organisation name",
+      "timezone": "Timezone",
+      "defaultLocale": "Default language",
+      "dateFormat": "Date format",
+      "features": {
+        "customerPortal": "Enable customer portal"
+      }
+    },
+    "hints": {
+      "orgName": "Shown in the app header and in outgoing email.",
+      "timezone": "Used when a date is displayed without an explicit zone.",
+      "defaultLocale": "The language new sessions start in.",
+      "dateFormat": "Pattern used to display dates, for example yyyy-MM-dd.",
+      "customerPortal": "When off, customers cannot sign in to the portal."
+    },
+    "actions": {
+      "save": "Save changes",
+      "reset": "Discard"
+    },
+    "saved": "Settings saved.",
+    "validation": {
+      "orgNameRequired": "Organisation name is required.",
+      "orgNameMax": "Organisation name must be 120 characters or fewer.",
+      "timezoneRequired": "Timezone is required.",
+      "defaultLocaleRequired": "Default language is required.",
+      "defaultLocaleUnknown": "Choose one of the available languages.",
+      "dateFormatRequired": "Date format is required."
+    },
+    "errors": {
+      "load": "Could not load the settings. Try again.",
+      "validation": "One or more values are invalid.",
+      "forbidden": "Only admins can change settings."
+    }
   },
   "page": {
     "placeholder": "This section is part of the Phase 5 build. The route, its guard and its place in the sidebar are ready; the screen itself is on the way."

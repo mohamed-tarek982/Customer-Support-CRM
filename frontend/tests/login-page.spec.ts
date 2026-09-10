@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  authErrorKey,
   buildLoginSchema,
   buildResetSchema,
+  httpStatusOf,
   resolvePostLoginTarget,
 } from '../utils/auth-schemas'
 
@@ -93,5 +95,32 @@ describe('resolvePostLoginTarget', () => {
 
   it('honours a redirect to a route with no type restriction', () => {
     expect(resolvePostLoginTarget('/settings', 'customer', noMeta)).toBe('/settings')
+  })
+})
+
+describe('authErrorKey', () => {
+  it('maps a 401 to the generic invalid-credentials copy', () => {
+    expect(authErrorKey({ statusCode: 401 })).toBe('auth.errors.invalidCredentials')
+  })
+
+  it('maps a 429 to its own rate-limit copy', () => {
+    expect(authErrorKey({ statusCode: 429 })).toBe('auth.errors.rateLimited')
+  })
+
+  it('maps a 500 to the generic failure copy, not a wrong password', () => {
+    expect(authErrorKey({ statusCode: 500 })).toBe('auth.errors.generic')
+  })
+
+  // The regression this whole helper exists for: a backend that is not running
+  // rejects with no status at all, and used to render "incorrect password".
+  it('maps a response-less failure to the network copy', () => {
+    expect(authErrorKey(new TypeError('Failed to fetch'))).toBe('auth.errors.network')
+    expect(authErrorKey(undefined)).toBe('auth.errors.network')
+  })
+
+  it('reads the status off response.status when statusCode is absent', () => {
+    expect(authErrorKey({ response: { status: 401 } })).toBe('auth.errors.invalidCredentials')
+    expect(httpStatusOf({ status: 429 })).toBe(429)
+    expect(httpStatusOf({ statusCode: 'nope' })).toBeUndefined()
   })
 })

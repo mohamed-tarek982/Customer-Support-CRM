@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { MailModule } from './modules/mail/mail.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 /**
@@ -33,6 +34,7 @@ const scheduleImports = process.env.NODE_ENV === 'test' ? [] : [ScheduleModule.f
     HealthModule,
     StorageModule,
     MailModule,
+    SettingsModule,
   ],
   providers: [
     // Rate limiting is global; login and forgot-password additionally carry a

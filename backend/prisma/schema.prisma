@@ -150,3 +150,25 @@ model AuditLog {
   @@index([branchId, departmentId])
   @@index([createdAt])
 }
+
+/// Org-wide runtime configuration edited by admins from /staff/settings (SCRUM-36).
+/// Intentionally NOT tenant-scoped: these values are global to the installation.
+/// Do NOT add branchId/departmentId here — per-branch overrides are a separate
+/// feature (SCRUM-41).
+model SystemSetting {
+  id String @id @default(cuid())
+  /// Stable machine key, e.g. 'org.name', 'org.timezone', 'features.<name>'.
+  /// Dot-cased and never rendered to users; the UI labels come from i18n.
+  key String @unique
+  /// JSON-encoded value. Kept as `Json` (not `String`) so booleans and numbers
+  /// survive round-tripping through the API without ad-hoc parsing on either side.
+  value Json
+  /// Free-form grouping for the UI ('general', 'localisation', 'features').
+  /// Nullable so a new category needs no migration.
+  category  String?
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
