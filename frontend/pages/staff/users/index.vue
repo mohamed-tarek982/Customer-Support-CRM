@@ -8,16 +8,25 @@
  * NOT SECURITY — an agent who types the URL still gets nothing from the API.
  *
  * Layout notes, because this screen has the project's first real table:
- *   - Below `md` the rows render as stacked cards; from `md` up they render as a
- *     table inside its own `overflow-x-auto`, so the page itself never scrolls
- *     sideways at 320px.
- *   - Every spacing utility is logical (ms-/me-/ps-/pe-/start-/end-), so the
- *     whole screen mirrors in Arabic without a second layout.
+ *   - The roster is a `v-data-table-server`. Server-side, because the API
+ *     paginates and filters; the client only ever holds one page, so the table
+ *     is told the total separately via `items-length`.
+ *   - `mobile-breakpoint="md"` is what keeps 320px usable: below it Vuetify
+ *     stacks each row into a labelled block instead of a six-column grid, so
+ *     the page never scrolls sideways and there is no second layout to
+ *     maintain.
+ *   - Sorting is off on every column. The API orders by creation date and takes
+ *     no sort parameter, and a header that looks clickable but reorders only
+ *     the current page is worse than no sorting at all.
+ *   - Every spacing utility is logical (ms-/me-/ps-/pe-/start-/end-) and the
+ *     actions column is aligned to `end`, so the whole screen mirrors in Arabic
+ *     without a second layout.
  *   - Both dialogs go fullscreen on small viewports; a centred modal with a form
  *     in it is unusable on a phone.
  */
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/yup'
+import { mdiAccountCheck, mdiAccountOff, mdiPencil, mdiShieldAccount } from '@mdi/js'
 import {
   CREATE_USER_DEFAULTS,
   FILTER_DEFAULTS,
@@ -47,11 +56,13 @@ const { formatDate } = useFormattedDate()
 const isAdmin = computed(() => canManageUsers(auth.role.value))
 const actorId = computed(() => auth.session.value?.sub ?? null)
 
-const PAGE_SIZE = 25
+/** Capped at 100 to match the API's `USERS_MAX_PAGE_SIZE`; asking for more is a 400. */
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
 const rows = ref<UserRow[]>([])
 const total = ref(0)
 const page = ref(1)
+const itemsPerPage = ref(25)
 const loading = ref(true)
 const loadError = ref('')
 const actionError = ref('')
@@ -60,10 +71,30 @@ const toastVisible = ref(false)
 
 const filters = reactive<UserFilters>({ ...FILTER_DEFAULTS })
 
-const pageCount = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 const hasFilters = computed(
   () => Object.keys(toListQuery(filters)).length > 2, // page + pageSize are always present
 )
+
+/**
+ * Column definitions. Rebuilt on a locale change so the headers translate, and
+ * they double as the field labels in the stacked mobile layout — one definition
+ * drives both, which is the reason this is a data table rather than two markup
+ * blocks kept in sync by hand.
+ */
+const headers = computed(() => [
+  { title: t('users.table.name'), key: 'name', sortable: false },
+  { title: t('users.table.email'), key: 'email', sortable: false },
+  { title: t('users.table.role'), key: 'role', sortable: false },
+  { title: t('users.table.status'), key: 'isActive', sortable: false },
+  { title: t('users.table.created'), key: 'createdAt', sortable: false },
+  {
+    title: t('users.table.actions'),
+    key: 'actions',
+    sortable: false,
+    align: 'end' as const,
+    width: 260,
+  },
+])
 
 /** Status filter and status column share one source, so the two never disagree. */
 const statusOptions = computed(() => [
@@ -86,11 +117,21 @@ function roleLabel(role: string): string {
   return match ? match.title : role
 }
 
+/**
+ * Label for the row's deactivate action, icon-only in the table so this is the
+ * only place its meaning appears before a click. Swaps to the "not yourself"
+ * reason when the button is disabled, rather than leaving a disabled button
+ * with no explanation.
+ */
+function deactivateLabel(row: UserRow): string {
+  return canDeactivate(row, actorId.value) ? t('users.actions.deactivate') : t('users.hints.notYourself')
+}
+
 async function load(): Promise<void> {
   loading.value = true
   loadError.value = ''
   try {
-    const result = await users.list(toListQuery(filters, page.value, PAGE_SIZE))
+    const result = await users.list(toListQuery(filters, page.value, itemsPerPage.value))
     rows.value = result.items
     total.value = result.total
   } catch (error: unknown) {
@@ -102,8 +143,12 @@ async function load(): Promise<void> {
 
 /**
  * Debounced so typing a name is one request rather than one per keystroke.
- * Any filter change also resets to page 1 — staying on page 4 of a result set
- * that now has one page shows an empty table and looks like a failure.
+ *
+ * A filter change also returns to page 1: staying on page 4 of a result set that
+ * now has one page shows an empty table and reads as a failure. Resetting the
+ * page is enough to trigger a reload on its own, so this only calls `load`
+ * directly when the page was already 1 — otherwise the same filter change would
+ * fire two identical requests.
  */
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -112,14 +157,17 @@ watch(
   () => {
     if (searchTimer) clearTimeout(searchTimer)
     searchTimer = setTimeout(() => {
-      page.value = 1
-      void load()
+      if (page.value !== 1) page.value = 1
+      else void load()
     }, 300)
   },
   { deep: true },
 )
 
-watch(page, () => void load())
+// The table drives both of these through v-model, so paging and resizing the
+// page reload from one place rather than from an options-changed handler whose
+// firing on mount would race the initial load.
+watch([page, itemsPerPage], () => void load())
 
 function resetFilters(): void {
   Object.assign(filters, FILTER_DEFAULTS)
@@ -330,7 +378,6 @@ onMounted(() => {
       <v-btn
         v-if="isAdmin"
         color="primary"
-        size="large"
         class="w-full sm:w-auto"
         @click="openCreate"
       >
@@ -416,7 +463,8 @@ onMounted(() => {
           class="mt-4 flex justify-end"
         >
           <v-btn
-            variant="text"
+            color="primary"
+            variant="outlined"
             @click="resetFilters"
           >
             {{ $t('users.filters.clear') }}
@@ -424,249 +472,131 @@ onMounted(() => {
         </div>
       </v-card>
 
-      <div
-        v-if="loading"
-        class="py-10 text-center text-secondary/70"
+      <!--
+        `items-length` comes from the API rather than from `items.length`: the
+        client holds one page, and the footer's "1-25 of 90" has to count rows
+        the browser has never seen.
+      -->
+      <v-data-table-server
+        v-model:page="page"
+        v-model:items-per-page="itemsPerPage"
+        :headers="headers"
+        :items="rows"
+        :items-length="total"
+        :loading="loading"
+        :items-per-page-options="PAGE_SIZE_OPTIONS"
+        :loading-text="$t('users.loading')"
+        :aria-label="$t('users.table.caption')"
+        mobile-breakpoint="md"
+        item-value="id"
+        hover
       >
-        {{ $t('users.loading') }}
-      </div>
+        <template #no-data>
+          <p class="py-8 text-center text-secondary/70">
+            {{ hasFilters ? $t('users.emptyFiltered') : $t('users.empty') }}
+          </p>
+        </template>
 
-      <v-card
-        v-else-if="rows.length === 0"
-        class="p-8 text-center"
-      >
-        <p class="text-secondary/70">
-          {{ hasFilters ? $t('users.emptyFiltered') : $t('users.empty') }}
-        </p>
-      </v-card>
+        <template #[`item.name`]="{ item }">
+          {{ item.name || $t('users.unnamed') }}
+        </template>
 
-      <template v-else>
-        <!-- Narrow viewports: one card per user. A six-column table at 320px is
-             a horizontal scrollbar with a table hidden behind it. -->
-        <div class="flex flex-col gap-3 md:hidden">
-          <v-card
-            v-for="row in rows"
-            :key="row.id"
-            class="flex flex-col gap-3 p-4"
+        <template #[`item.role`]="{ item }">
+          {{ roleLabel(item.role) }}
+        </template>
+
+        <template #[`item.isActive`]="{ item }">
+          <v-chip
+            :color="item.isActive ? 'success' : 'secondary'"
+            size="small"
+            variant="tonal"
           >
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div class="min-w-0">
-                <p class="truncate font-medium text-secondary">
-                  {{ row.name || $t('users.unnamed') }}
-                </p>
-                <p class="truncate text-sm text-secondary/70">
-                  {{ row.email }}
-                </p>
-              </div>
-              <v-chip
-                :color="row.isActive ? 'success' : 'secondary'"
-                size="small"
-                variant="tonal"
-              >
-                {{ row.isActive ? $t('users.status.active') : $t('users.status.inactive') }}
-              </v-chip>
-            </div>
+            {{ item.isActive ? $t('users.status.active') : $t('users.status.inactive') }}
+          </v-chip>
+        </template>
 
-            <dl class="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <dt class="text-secondary/60">
-                  {{ $t('users.table.role') }}
-                </dt>
-                <dd class="text-secondary">
-                  {{ roleLabel(row.role) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-secondary/60">
-                  {{ $t('users.table.created') }}
-                </dt>
-                <dd class="text-secondary">
-                  {{ formatDate(new Date(row.createdAt), 'PP') }}
-                </dd>
-              </div>
-            </dl>
+        <!-- Never a hand-built date string: the helper formats through the
+             active locale, so Arabic gets Arabic month names. -->
+        <template #[`item.createdAt`]="{ item }">
+          {{ formatDate(new Date(item.createdAt), 'PP') }}
+        </template>
 
-            <div class="flex flex-wrap gap-2">
-              <v-btn
-                variant="tonal"
-                size="small"
-                class="min-h-11"
-                @click="openEdit(row)"
-              >
-                {{ $t('users.actions.edit') }}
-              </v-btn>
-              <v-btn
-                variant="tonal"
-                size="small"
-                class="min-h-11"
-                @click="openRole(row)"
-              >
-                {{ $t('users.actions.assignRole') }}
-              </v-btn>
-              <v-btn
-                v-if="row.isActive"
-                variant="tonal"
-                size="small"
-                color="error"
-                class="min-h-11"
-                :disabled="!canDeactivate(row, actorId)"
-                @click="openDeactivate(row)"
-              >
-                {{ $t('users.actions.deactivate') }}
-              </v-btn>
-              <v-btn
-                v-else
-                variant="tonal"
-                size="small"
-                color="success"
-                class="min-h-11"
-                :loading="reactivatingId === row.id"
-                @click="reactivate(row)"
-              >
-                {{ $t('users.actions.reactivate') }}
-              </v-btn>
-            </div>
-          </v-card>
-        </div>
-
-        <!-- Wide viewports: a real table, scrolling inside its own container so
-             the page body never scrolls sideways. -->
-        <v-card class="hidden md:block">
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[56rem] text-start text-sm">
-              <caption class="sr-only">
-                {{ $t('users.table.caption') }}
-              </caption>
-              <thead class="border-b border-secondary/15 text-secondary/70">
-                <tr>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-start font-medium"
-                  >
-                    {{ $t('users.table.name') }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-start font-medium"
-                  >
-                    {{ $t('users.table.email') }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-start font-medium"
-                  >
-                    {{ $t('users.table.role') }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-start font-medium"
-                  >
-                    {{ $t('users.table.status') }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-start font-medium"
-                  >
-                    {{ $t('users.table.created') }}
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-4 py-3 text-end font-medium"
-                  >
-                    {{ $t('users.table.actions') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="row in rows"
-                  :key="row.id"
-                  class="border-b border-secondary/10 last:border-0"
-                >
-                  <td class="px-4 py-3 text-secondary">
-                    {{ row.name || $t('users.unnamed') }}
-                  </td>
-                  <td class="px-4 py-3 text-secondary/80">
-                    {{ row.email }}
-                  </td>
-                  <td class="px-4 py-3 text-secondary/80">
-                    {{ roleLabel(row.role) }}
-                  </td>
-                  <td class="px-4 py-3">
-                    <v-chip
-                      :color="row.isActive ? 'success' : 'secondary'"
-                      size="small"
-                      variant="tonal"
-                    >
-                      {{ row.isActive ? $t('users.status.active') : $t('users.status.inactive') }}
-                    </v-chip>
-                  </td>
-                  <td class="whitespace-nowrap px-4 py-3 text-secondary/80">
-                    {{ formatDate(new Date(row.createdAt), 'PP') }}
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="flex justify-end gap-2">
-                      <v-btn
-                        variant="text"
-                        size="small"
-                        class="min-h-11"
-                        @click="openEdit(row)"
-                      >
-                        {{ $t('users.actions.edit') }}
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        size="small"
-                        class="min-h-11"
-                        @click="openRole(row)"
-                      >
-                        {{ $t('users.actions.assignRole') }}
-                      </v-btn>
-                      <v-btn
-                        v-if="row.isActive"
-                        variant="text"
-                        size="small"
-                        color="error"
-                        class="min-h-11"
-                        :disabled="!canDeactivate(row, actorId)"
-                        :title="
-                          canDeactivate(row, actorId) ? undefined : $t('users.hints.notYourself')
-                        "
-                        @click="openDeactivate(row)"
-                      >
-                        {{ $t('users.actions.deactivate') }}
-                      </v-btn>
-                      <v-btn
-                        v-else
-                        variant="text"
-                        size="small"
-                        color="success"
-                        class="min-h-11"
-                        :loading="reactivatingId === row.id"
-                        @click="reactivate(row)"
-                      >
-                        {{ $t('users.actions.reactivate') }}
-                      </v-btn>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <!--
+          Icon-only row actions. A text label per action does not fit a dense
+          row four times over on a narrow screen; the icon does. Each label
+          still exists for assistive tech via `aria-label`, and for a sighted
+          pointer user via `v-tooltip` on hover and keyboard focus — the
+          translation just moved off the button face, it was not dropped.
+        -->
+        <template #[`item.actions`]="{ item }">
+          <div class="flex flex-wrap justify-end gap-1">
+            <v-tooltip :text="$t('users.actions.edit')">
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  :icon="mdiPencil"
+                  color="grey-darken-2"
+                  variant="text"
+                  size="small"
+                  class="min-h-11 min-w-11"
+                  :aria-label="$t('users.actions.edit')"
+                  @click="openEdit(item)"
+                />
+              </template>
+            </v-tooltip>
+            <v-tooltip :text="$t('users.actions.assignRole')">
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  color="grey-darken-2"
+                  :icon="mdiShieldAccount"
+                  variant="text"
+                  size="small"
+                  class="min-h-11 min-w-11"
+                  :aria-label="$t('users.actions.assignRole')"
+                  @click="openRole(item)"
+                />
+              </template>
+            </v-tooltip>
+            <v-tooltip
+              v-if="item.isActive"
+              :text="deactivateLabel(item)"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  :icon="mdiAccountOff"
+                  variant="text"
+                  size="small"
+                  color="error"
+                  class="min-h-11 min-w-11"
+                  :disabled="!canDeactivate(item, actorId)"
+                  :aria-label="deactivateLabel(item)"
+                  @click="openDeactivate(item)"
+                />
+              </template>
+            </v-tooltip>
+            <v-tooltip
+              v-else
+              :text="$t('users.actions.reactivate')"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  :icon="mdiAccountCheck"
+                  variant="text"
+                  size="small"
+                  color="success"
+                  class="min-h-11 min-w-11"
+                  :loading="reactivatingId === item.id"
+                  :aria-label="$t('users.actions.reactivate')"
+                  @click="reactivate(item)"
+                />
+              </template>
+            </v-tooltip>
           </div>
-        </v-card>
-
-        <div
-          v-if="pageCount > 1"
-          class="flex justify-center"
-        >
-          <v-pagination
-            v-model="page"
-            :length="pageCount"
-            :total-visible="5"
-            density="comfortable"
-          />
-        </div>
-      </template>
+        </template>
+      </v-data-table-server>
     </template>
 
     <!-- Create ------------------------------------------------------------ -->
@@ -740,8 +670,6 @@ onMounted(() => {
 
         <v-card-actions class="flex flex-col gap-2 p-4 sm:flex-row sm:justify-end">
           <v-btn
-            variant="text"
-            size="large"
             class="w-full sm:w-auto"
             @click="createOpen = false"
           >
@@ -751,11 +679,11 @@ onMounted(() => {
             type="submit"
             form="create-user-form"
             color="primary"
-            size="large"
             class="w-full sm:w-auto"
             :loading="creating"
+            variant="tonal"
           >
-            {{ $t('users.actions.create') }}
+            <span class="font-semibold">   {{ $t('users.actions.create') }} </span>
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -939,6 +867,7 @@ onMounted(() => {
       v-model="toastVisible"
       color="success"
       :timeout="4000"
+      location="bottom left"
     >
       {{ toast }}
     </v-snackbar>

@@ -1,8 +1,8 @@
-import { APP_LOCALES, DEFAULT_LOCALE } from './i18n/locale-config'
+import { APP_LOCALES, DEFAULT_LOCALE } from "./i18n/locale-config";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-01-01',
+  compatibilityDate: "2025-01-01",
 
   /**
    * SPA mode. Chosen deliberately: this is an authenticated internal CRM, so
@@ -18,23 +18,24 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@vee-validate/nuxt'],
+  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n", "@vee-validate/nuxt"],
 
   css: [
     // Vuetify's own stylesheet MUST load — its components do not function
     // without it. This is the half of the boundary that Tailwind never touches.
-    'vuetify/styles',
-    '~/assets/css/tailwind.css',
+    "vuetify/styles",
+    "~/assets/css/tailwind.css",
+    "~/assets/scss/style.scss",
   ],
 
   build: {
-    transpile: ['vuetify'],
+    transpile: ["vuetify"],
   },
 
   i18n: {
-    strategy: 'no_prefix',
+    strategy: "no_prefix",
     defaultLocale: DEFAULT_LOCALE,
-    langDir: 'locales',
+    langDir: "locales",
     // Registered from i18n/locale-config.ts, which plugins/vuetify.ts and
     // plugins/rtl.client.ts read from too, so the direction cannot drift.
     locales: APP_LOCALES,
@@ -51,16 +52,17 @@ export default defineNuxtConfig({
   veeValidate: {
     autoImports: true,
     componentNames: {
-      Form: 'VeeForm',
-      Field: 'VeeField',
-      FieldArray: 'VeeFieldArray',
-      ErrorMessage: 'VeeErrorMessage',
+      Form: "VeeForm",
+      Field: "VeeField",
+      FieldArray: "VeeFieldArray",
+      ErrorMessage: "VeeErrorMessage",
     },
   },
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3001/api/v1',
+      apiBase:
+        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3001/api/v1",
     },
   },
 
@@ -70,8 +72,8 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    define: { 'process.env.DEBUG': 'false' },
+    define: { "process.env.DEBUG": "false" },
     // Vuetify ships ESM that Vite pre-bundles poorly in dev unless excluded.
-    optimizeDeps: { exclude: ['vuetify'] },
+    optimizeDeps: { exclude: ["vuetify"] },
   },
-})
+});
