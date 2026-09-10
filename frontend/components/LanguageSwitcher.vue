@@ -7,7 +7,20 @@
  * The label shows the OTHER language, in that language, so an Arabic speaker
  * sees "العربية" to switch to it.
  */
+import { mdiTranslate } from '@mdi/js'
 import { APP_LOCALES } from '~/i18n/locale-config'
+
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Vuetify colour token for the button. The default suits a light surface
+     * (the pre-auth shell); a dark chrome such as the app bar passes "white",
+     * where primary-on-primary would be unreadable.
+     */
+    color?: string
+  }>(),
+  { color: 'primary' },
+)
 
 const { locale, setLocale } = useI18n()
 
@@ -25,9 +38,11 @@ async function toggleLocale(): Promise<void> {
 <template>
   <v-btn
     variant="outlined"
-    color="primary"
+    :color="props.color"
     size="small"
+    min-height="34"
     :aria-label="localeName"
+    :prepend-icon="mdiTranslate"
     @click="toggleLocale"
   >
     {{ localeName }}

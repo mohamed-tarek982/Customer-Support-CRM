@@ -12,6 +12,7 @@ import { StorageModule } from './modules/storage/storage.module';
 import { MailModule } from './modules/mail/mail.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 /**
@@ -37,6 +38,7 @@ const scheduleImports = process.env.NODE_ENV === 'test' ? [] : [ScheduleModule.f
     MailModule,
     SettingsModule,
     UsersModule,
+    AuditLogsModule,
   ],
   providers: [
     // Rate limiting is global; login and forgot-password additionally carry a

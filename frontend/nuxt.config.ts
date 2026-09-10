@@ -16,6 +16,13 @@ export default defineNuxtConfig({
    */
   ssr: false,
 
+    app: {
+    head: {
+      title: "CRM",
+      link: [{ rel: "icon", type: "image/svg", href: "/fav-icon.svg" }],
+    },
+  },
+
   devtools: { enabled: true },
 
   modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n", "@vee-validate/nuxt"],
